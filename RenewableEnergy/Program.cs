@@ -29,6 +29,8 @@ namespace RenewableEnergy
             XmlDocument doc = new XmlDocument();
             XmlNode? rootNode;
             XmlNodeList? allCountryNodes = null; // this wil be populated using XPath
+            string year;
+            string units;
 
             // Load the data from the XML file using the DOM
             try
@@ -36,8 +38,76 @@ namespace RenewableEnergy
                 doc.Load(XmlFile);
                 if (doc.DocumentElement != null)
                 {
+                    // store important things in memory using XPath
                     rootNode = doc.DocumentElement;
-                    allCountryNodes = rootNode.SelectNodes("//country"); // obtain all country nodes using XPath
+                    year = rootNode?.SelectSingleNode("@year")?.Value ?? string.Empty;
+                    units = rootNode?.SelectSingleNode("@units")?.Value ?? string.Empty;
+                    allCountryNodes = rootNode?.SelectNodes("//country"); // obtain all country nodes using XPath
+
+                    Console.WriteLine($"Renewable Electricity Production in {year}");
+                    Console.WriteLine("========================================");
+
+
+
+                    List<string> commands = new List<string> { "C", "S", "P", "X" };
+
+                    bool quit = false;
+                    while (!quit)
+                    {
+                        Console.Write("\nEnter 'C' to select a country, 'S' to select a specific source" +
+                            ", 'P' to select\na % range of renewables production, or 'X' to quit: ");
+
+                        string commandString = Console.ReadLine() ?? string.Empty;
+
+                        if (commands.Contains(commandString.ToUpper()))
+                        {
+                            switch (commandString.ToUpper())
+                            {
+                                case "C":
+                                    DisplayNumberedMenuOfCountries(allCountryNodes);
+                                    bool reportFinished = false;
+                                    string countryNumberStr;
+
+                                    while (!reportFinished)
+                                    {
+                                        Console.Write("Enter a country #: ");
+                                        countryNumberStr = Console.ReadLine() ?? string.Empty;
+                                        if (int.TryParse(countryNumberStr, out int index))
+                                        {
+                                            if (index > 0 && index <= allCountryNodes?.Count)
+                                            {
+                                                // generate the report for the selected country...
+                                                GenerateReportForCountry(allCountryNodes[index - 1]);
+                                                reportFinished = true;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Invalid Country Error: Please enter a valid country number...");
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Invalid Country Error: Please enter a valid country number...");
+                                        }
+                                    }
+
+                                    break;
+                                case "S":
+                                    break;
+                                case "P":
+                                    break;
+                                case "X":
+                                    quit = true;
+                                    Console.WriteLine("Shutting down program...");
+                                    break;
+                            }
+                        }
+                        else { Console.WriteLine("Invalid Command Error: Please enter a valid command..."); }
+                    } // end of program loop
+
+                    // once user quits we will save their data to a file as per instructions...
+                    // maybe we can use a method to save the data to a file...
                 }
             }
             catch (XPathException e)
@@ -63,72 +133,6 @@ namespace RenewableEnergy
                 Console.WriteLine(e.StackTrace);
                 return;
             }
-
-
-
-
-            Console.WriteLine("Renewable Electricity Production in 2021");
-            Console.WriteLine("========================================");
-
-            List<string> commands = new List<string> { "C", "S", "P", "X" };
-
-            bool quit = false;
-            while (!quit)
-            {
-                Console.Write("\nEnter 'C' to select a country, 'S' to select a specific source" +
-                    ", 'P' to select\na % range of renewables production, or 'X' to quit: ");
-
-                string commandString = Console.ReadLine() ?? string.Empty;
-
-                if (commands.Contains(commandString.ToUpper()))
-                {
-                    switch (commandString.ToUpper())
-                    {
-                        case "C":
-                            DisplayNumberedMenuOfCountries(allCountryNodes);
-                            bool reportFinished = false;
-                            string countryNumberStr;
-
-                            while (!reportFinished)
-                            {
-                                Console.Write("Enter a country #: ");
-                                countryNumberStr = Console.ReadLine() ?? string.Empty;
-                                if(int.TryParse(countryNumberStr, out int index))
-                                {
-                                    if (index > 0 && index <= allCountryNodes?.Count)
-                                    {
-                                        // generate the report for the selected country...
-                                        GenerateReportForCountry(allCountryNodes[index - 1]);
-                                        reportFinished = true;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Invalid Country Error: Please enter a valid country number...");
-                                    }
-                                    
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Invalid Country Error: Please enter a valid country number...");
-                                }
-                            }
-
-                            break;
-                        case "S":
-                            break;
-                        case "P":
-                            break;
-                        case "X":
-                            quit = true;
-                            Console.WriteLine("Shutting down program...");
-                            break;
-                    }
-                }
-                else { Console.WriteLine("Invalid Command Error: Please enter a valid command..."); }
-            } // end of program loop
-
-            // once user quits we will save their data to a file as per instructions...
-            // maybe we can use a method to save the data to a file...
         }
 
         public static void DisplayNumberedMenuOfCountries(XmlNodeList? allCountries)
@@ -150,7 +154,7 @@ namespace RenewableEnergy
                     string countryName = countryNode.SelectSingleNode("@name")?.Value ?? string.Empty;
                     Console.Write("{0,3}. {1,-30}", ++index, countryName);
 
-                    
+
                 }
 
                 Console.WriteLine(); // Ensure the last line is properly terminated
@@ -160,6 +164,7 @@ namespace RenewableEnergy
 
         public static void GenerateReportForCountry(XmlNode? countryNode)
         {
+            // output the title of the report
             Console.WriteLine();
             string title = "Renewable Electricity Production in ";
             string countryName = countryNode?.SelectSingleNode("@name")?.Value ?? string.Empty;
@@ -168,7 +173,14 @@ namespace RenewableEnergy
             for (int i = 0; i < hypenCount; i++)
             {
                 Console.Write("-");
+                if (i == hypenCount - 1)
+                    Console.WriteLine("\n");
+
             }
+
+            // columns for the report. each row should not exceed 80 characters
+
+
         }
     }
 }
