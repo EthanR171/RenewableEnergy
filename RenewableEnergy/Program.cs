@@ -30,8 +30,7 @@ namespace RenewableEnergy
             XmlNode? rootNode;
             XmlNodeList? allCountryNodes = null; // this wil be populated using XPath
             string year;
-            string units;
-
+           
             // Load the data from the XML file using the DOM
             try
             {
@@ -41,7 +40,6 @@ namespace RenewableEnergy
                     // store important things in memory using XPath
                     rootNode = doc.DocumentElement;
                     year = rootNode?.SelectSingleNode("@year")?.Value ?? string.Empty;
-                    units = rootNode?.SelectSingleNode("@units")?.Value ?? string.Empty;
                     allCountryNodes = rootNode?.SelectNodes("//country"); // obtain all country nodes using XPath
 
                     Console.WriteLine($"Renewable Electricity Production in {year}");
@@ -178,7 +176,9 @@ namespace RenewableEnergy
             }
 
             // columns for the report. each row should not exceed 80 characters
+            string units = countryNode?.SelectSingleNode("ancestor::renewable-electricity/@units")?.Value ?? string.Empty;
 
+            
 
         }
     }
