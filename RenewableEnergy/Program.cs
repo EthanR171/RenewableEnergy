@@ -178,11 +178,34 @@ namespace RenewableEnergy
                 if (i == hypenCount - 1)
                     Console.WriteLine("\n");
             }
-
+            
             // columns for the report. each row should not exceed 80 characters
             string units = countryNode?.SelectSingleNode("ancestor::renewable-electricity/@units")?.Value ?? string.Empty;
+            string[] columnHeaders = { "Renewable Type", $"Amount ({units})", "% of Total", "% of Renewables" };
+            int matchesFound;
+
+            // formatted report within 80 characters
+            Console.WriteLine(" {0,-18} {1,-18} {2,-11} {3,-5}", columnHeaders[0], columnHeaders[1], columnHeaders[2], columnHeaders[3]);
+            Console.WriteLine();
+
+            // get all the renewable nodes for the country going down the tree.  (like in class use descendant)
+            XmlNodeList? renewableNodes = countryNode?.SelectNodes("descendant::source");
+            matchesFound = renewableNodes?.Count ?? 0;
 
             
+            for (int i = 0; i < matchesFound; i++)
+            {
+                // get report details using xpath
+                string renewableType = renewableNodes?[i]?.SelectSingleNode("@type")?.Value ?? string.Empty;
+                string amount = renewableNodes?[i]?.SelectSingleNode("@amount")?.Value ?? string.Empty;
+                string percentOfAll = renewableNodes?[i]?.SelectSingleNode("@percent-of-all")?.Value ?? string.Empty;
+                string percentOfRenewables = renewableNodes?[i]?.SelectSingleNode("@percent-of-renewables")?.Value ?? string.Empty;
+
+                Console.WriteLine(" {0,14} {1,16} {2,16} {3,16}",  renewableType, amount, percentOfAll, percentOfRenewables);
+            }
+            Console.WriteLine();
+
+            Console.WriteLine(matchesFound + " match(es) found.");
 
         }
     }
