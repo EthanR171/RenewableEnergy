@@ -137,9 +137,9 @@ namespace RenewableEnergy
         {
             if (allCountries?.Count > 0)
             {
-
                 int index = 0;
                 int countriesPerLine = 3;
+                int maxNameLength = 27; // for clean formatting in menu
 
                 foreach (XmlNode countryNode in allCountries)
                 {
@@ -148,11 +148,15 @@ namespace RenewableEnergy
                         Console.WriteLine();
                     }
 
+
                     // Use XPath to get the name attribute of the current country node
                     string countryName = countryNode.SelectSingleNode("@name")?.Value ?? string.Empty;
+
+                    // just the country name if it is too long to fit in the menu
+                    if (countryName.Length > maxNameLength)
+                        countryName = countryName.Substring(0, maxNameLength - 3) + "...";
+                    
                     Console.Write("{0,3}. {1,-30}", ++index, countryName);
-
-
                 }
 
                 Console.WriteLine(); // Ensure the last line is properly terminated
