@@ -45,7 +45,7 @@ namespace RenewableEnergy
                     Console.WriteLine($"Renewable Electricity Production in {year}");
                     Console.WriteLine("========================================");
 
-
+                    // this is where we can output the previous report from sthe settings xml file if it exists...
 
                     List<string> commands = new List<string> { "C", "S", "P", "X" };
 
