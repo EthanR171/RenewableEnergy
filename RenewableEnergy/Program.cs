@@ -175,7 +175,6 @@ namespace RenewableEnergy
                 Console.Write("-");
                 if (i == hypenCount - 1)
                     Console.WriteLine("\n");
-
             }
 
             // columns for the report. each row should not exceed 80 characters
