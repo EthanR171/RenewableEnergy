@@ -152,7 +152,7 @@ namespace RenewableEnergy
                     // Use XPath to get the name attribute of the current country node
                     string countryName = countryNode.SelectSingleNode("@name")?.Value ?? string.Empty;
 
-                    // just the country name if it is too long to fit in the menu
+                    // just truncate the country name if it is too long to fit in the menu
                     if (countryName.Length > maxNameLength)
                         countryName = countryName.Substring(0, maxNameLength - 3) + "...";
                     
