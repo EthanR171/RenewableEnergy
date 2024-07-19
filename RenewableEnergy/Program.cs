@@ -38,7 +38,7 @@ namespace RenewableEnergy
                 if (doc.DocumentElement != null)
                 {
                     // store important things in memory using XPath
-                    rootNode = doc.DocumentElement;
+                    rootNode = doc.SelectSingleNode("/");
                     year = rootNode?.SelectSingleNode("@year")?.Value ?? string.Empty;
                     allCountryNodes = rootNode?.SelectNodes("//country"); // obtain all country nodes using XPath
 
