@@ -28,7 +28,7 @@ namespace RenewableEnergy
 
             XmlDocument doc = new XmlDocument();
             XmlNode? rootNode;
-            XmlNodeList? allCountryNodes = null; // this wil be populated using XPath
+            XmlNodeList? allCountryNodes = null; // this wil be populated using XPath.
             string year;
            
             // Load the data from the XML file using the DOM
