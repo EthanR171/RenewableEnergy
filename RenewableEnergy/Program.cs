@@ -14,7 +14,7 @@
  * accounts for a certain percentage of all energy production. 
  * 
  ****************************************************************************************/
-using System.Globalization;
+using System.Text;
 using System.Xml;
 using System.Xml.XPath;
 namespace RenewableEnergy
@@ -42,7 +42,10 @@ namespace RenewableEnergy
                     year = rootNode?.SelectSingleNode("//@year")?.Value ?? string.Empty;
                     allCountryNodes = rootNode?.SelectNodes("//country"); // obtain all country nodes using XPath
 
+                    Console.OutputEncoding = Encoding.UTF8; // change console output to view copyright symbol
+                    Console.WriteLine("XML Report Generator \u00A9 Copyright 2024 ~ Ethan Rivers & Jefferson Gilbert\n\n");
                     Console.WriteLine($"Renewable Electricity Production in {year}");
+                   
                     Console.WriteLine("========================================");
 
                     // this is where we can output the previous report from sthe settings xml file if it exists...
@@ -98,7 +101,7 @@ namespace RenewableEnergy
                                     break;
                                 case "X":
                                     quit = true;
-                                    Console.WriteLine("Shutting down program...");
+                                    Console.WriteLine("\nShutting down program...");
                                     break;
                             }
                         }
@@ -287,7 +290,7 @@ namespace RenewableEnergy
 
                             Console.WriteLine(" {0,31} {1,14} {2,16} {3,16}", countryName, amount, percentOfAll, percentOfRenewables);
                         }
-
+                        Console.WriteLine($"{matchesFound} match(es) found.");
 
 
                         validIndex = true;
