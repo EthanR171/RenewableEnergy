@@ -39,7 +39,7 @@ namespace RenewableEnergy
                 {
                     // store important things in memory using XPath
                     rootNode = doc.SelectSingleNode("/");
-                    year = rootNode?.SelectSingleNode("@year")?.Value ?? string.Empty;
+                    year = rootNode?.SelectSingleNode("//@year")?.Value ?? string.Empty;
                     allCountryNodes = rootNode?.SelectNodes("//country"); // obtain all country nodes using XPath
 
                     Console.WriteLine($"Renewable Electricity Production in {year}");
@@ -92,6 +92,7 @@ namespace RenewableEnergy
 
                                     break;
                                 case "S":
+                                    GenerateReportForSpecificTypeOfRenewableEnergy(rootNode);
                                     break;
                                 case "P":
                                     break;
@@ -206,6 +207,102 @@ namespace RenewableEnergy
             Console.WriteLine();
 
             Console.WriteLine(matchesFound + " match(es) found.");
+
+        }
+
+        public static void GenerateReportForSpecificTypeOfRenewableEnergy(XmlNode? root)
+        {
+            if(root is null) { return; } // just in case (should never happen)
+
+            // generate list of all types of energy sources using XPath
+            XmlNodeList? typesOfRenewables = root?.SelectNodes("//source/@type");
+            if (typesOfRenewables is null)
+            {
+                Console.WriteLine("No renewable energy types found in the data.");
+                return;
+            }
+
+            // remove all duplicates 
+            HashSet<string> uniqueTypes = new();
+            foreach (XmlNode type in typesOfRenewables)
+            {
+                uniqueTypes.Add(type.Value ?? "");
+            }
+
+
+            Console.WriteLine("\nSelect a renewable by number as shown below...");
+            for (int i = 0; i < uniqueTypes.Count; i++)
+            {
+                Console.WriteLine($"  {i + 1}. {uniqueTypes.ElementAt(i)}");
+            }
+            Console.WriteLine();
+            Console.WriteLine();
+            string renewableNumberStr;
+            bool validIndex = false;
+            
+            while (!validIndex)
+            {
+                Console.Write("Enter a renewable #: ");
+                renewableNumberStr = Console.ReadLine() ?? string.Empty;
+                if (int.TryParse(renewableNumberStr, out int index))
+                {
+                    if (index > 0 && index <= uniqueTypes.Count)
+                    {
+                        string typeStr = uniqueTypes.ElementAt(index - 1);
+                        string formattedTypeStr = typeStr.Substring(0, 1).ToUpper() + typeStr.Substring(1);
+                        string title = formattedTypeStr + " Electricity Production";
+                        // generate the report for the selected renewable...
+                        Console.WriteLine();
+                        Console.WriteLine(formattedTypeStr + " Electricity Production");
+                        // output underscores for the title
+                        for (int i = 0; i < title.Length; i++)
+                        {
+                            Console.Write("-");
+                            if (i == title.Length - 1)
+                                Console.WriteLine("\n");
+                        }
+
+                        // use a node list to get all the countries that have the selected renewable type
+                        XmlNodeList? countriesWithRenewable = root?.SelectNodes($"//country/source[@type=\"{typeStr}\"]");
+                        if (countriesWithRenewable is null)
+                        {
+                            Console.WriteLine("No countries found with the selected renewable type.");
+                            return;
+                        }
+                        string units = root?.SelectSingleNode("//@units")?.Value ?? string.Empty;
+                        // output the report for the selected renewable type
+                        Console.WriteLine("{0,32} {1,14} {2,16} {3,16}", "Country", $"Amount ({units})", "% of Total", "% of Renewables");
+                        Console.WriteLine();
+                        int matchesFound = countriesWithRenewable.Count;
+                        for (int i = 0; i < matchesFound; i++)
+                        {
+                            string countryName = countriesWithRenewable[i]?.SelectSingleNode("ancestor::country/@name")?.Value ?? string.Empty;
+                            string amount = countriesWithRenewable[i]?.SelectSingleNode("@amount")?.Value ?? string.Empty;
+                            string percentOfAll = countriesWithRenewable[i]?.SelectSingleNode("@percent-of-all")?.Value ?? string.Empty;
+                            string percentOfRenewables = countriesWithRenewable[i]?.SelectSingleNode("@percent-of-renewables")?.Value ?? string.Empty;
+
+                            // check if country name is too long
+                            if (countryName.Length > 30)
+                                countryName = countryName.Substring(0, 27) + "...";
+
+                            Console.WriteLine(" {0,31} {1,14} {2,16} {3,16}", countryName, amount, percentOfAll, percentOfRenewables);
+                        }
+
+
+
+                        validIndex = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid Renewable Error: Please enter a valid renewable number...");
+                    }
+
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Renewable Error: Please enter a valid renewable number...");
+                }   
+            }
 
         }
     }
