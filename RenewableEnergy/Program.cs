@@ -101,8 +101,8 @@ namespace RenewableEnergy
                                     bool validInput = false;
                                     while (!validInput)
                                     {
-                                        double min = -1, max = -1;
-                                        bool isMinDefault = false, isMaxDefault = false;
+                                        double min = -1, max = -1; // start these of at our default values
+                                        bool isMinDefault = false, isMaxDefault = false; // these mark if the user didn't enter a value for min or max
 
                                         // Get user input for minimum and maximum range
                                         Console.WriteLine();
@@ -161,8 +161,6 @@ namespace RenewableEnergy
                                         validInput = true;
                                     }
                                     break;
-
-
                                 case "X":
                                     quit = true;
                                     Console.WriteLine("\nShutting down program...");
