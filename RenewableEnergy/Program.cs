@@ -30,7 +30,7 @@ namespace RenewableEnergy
             XmlNode? rootNode;
             XmlNodeList? allCountryNodes = null; // this wil be populated using XPath.
             string year;
-           
+
             // Load the data from the XML file using the DOM
             try
             {
@@ -45,7 +45,7 @@ namespace RenewableEnergy
                     Console.OutputEncoding = Encoding.UTF8; // change console output to view copyright symbol
                     Console.WriteLine("XML Report Generator \u00A9 Copyright 2024 ~ Ethan Rivers & Jefferson Gilbert\n\n");
                     Console.WriteLine($"Renewable Electricity Production in {year}");
-                   
+
                     Console.WriteLine("========================================");
 
                     // this is where we can output the previous report from sthe settings xml file if it exists...
@@ -98,6 +98,7 @@ namespace RenewableEnergy
                                     GenerateReportForSpecificTypeOfRenewableEnergy(rootNode);
                                     break;
                                 case "P":
+                                    GenerateRangeBasedReport(rootNode, 13.5, 14.5);
                                     break;
                                 case "X":
                                     quit = true;
@@ -159,7 +160,7 @@ namespace RenewableEnergy
                     // just truncate the country name if it is too long to fit in the menu
                     if (countryName.Length > maxNameLength)
                         countryName = countryName.Substring(0, maxNameLength - 3) + "...";
-                    
+
                     Console.Write("{0,3}. {1,-30}", ++index, countryName);
                 }
 
@@ -182,7 +183,7 @@ namespace RenewableEnergy
                 if (i == hypenCount - 1)
                     Console.WriteLine("\n");
             }
-            
+
             // columns for the report. each row should not exceed 80 characters
             string units = countryNode?.SelectSingleNode("ancestor::renewable-electricity/@units")?.Value ?? string.Empty;
             string[] columnHeaders = { "Renewable Type", $"Amount ({units})", "% of Total", "% of Renewables" };
@@ -196,7 +197,7 @@ namespace RenewableEnergy
             XmlNodeList? renewableNodes = countryNode?.SelectNodes("descendant::source");
             matchesFound = renewableNodes?.Count ?? 0;
 
-            
+
             for (int i = 0; i < matchesFound; i++)
             {
                 // get report details using xpath
@@ -205,7 +206,7 @@ namespace RenewableEnergy
                 string percentOfAll = renewableNodes?[i]?.SelectSingleNode("@percent-of-all")?.Value ?? string.Empty;
                 string percentOfRenewables = renewableNodes?[i]?.SelectSingleNode("@percent-of-renewables")?.Value ?? string.Empty;
 
-                Console.WriteLine(" {0,14} {1,16} {2,16} {3,16}",  renewableType, amount, percentOfAll, percentOfRenewables);
+                Console.WriteLine(" {0,14} {1,16} {2,16} {3,16}", renewableType, amount, percentOfAll, percentOfRenewables);
             }
             Console.WriteLine();
 
@@ -215,7 +216,7 @@ namespace RenewableEnergy
 
         public static void GenerateReportForSpecificTypeOfRenewableEnergy(XmlNode? root)
         {
-            if(root is null) { return; } // just in case (should never happen)
+            if (root is null) { return; } // just in case (should never happen)
 
             // generate list of all types of energy sources using XPath
             XmlNodeList? typesOfRenewables = root?.SelectNodes("//source/@type");
@@ -242,7 +243,7 @@ namespace RenewableEnergy
             Console.WriteLine();
             string renewableNumberStr;
             bool validIndex = false;
-            
+
             while (!validIndex)
             {
                 Console.Write("Enter a renewable #: ");
@@ -304,9 +305,42 @@ namespace RenewableEnergy
                 else
                 {
                     Console.WriteLine("Invalid Renewable Error: Please enter a valid renewable number...");
-                }   
+                }
             }
 
+        } // end of method
+
+        public static void GenerateRangeBasedReport(XmlNode? root, double min, double max)
+        {
+            XmlNodeList? filteredCountries = root?.SelectNodes($"//country[totals/@renewable-percent >= {min} and totals/@renewable-percent <= {max}]");
+            if (filteredCountries is null) { return; }
+
+            // output the header for the report
+            Console.WriteLine();
+
+            string[] header1 = { "Countries Where Renewables Account for", $"{min:F2}%","to", $"{max:F2}%", "of Electricity Generation" };
+            Console.WriteLine("{0} {1} {2} {3} {4}", header1[0], header1[1], header1[2], header1[3], header1[4]);
+            // calculate length of header for underscores
+            int headerLength = header1[0].Length + header1[1].Length + header1[2].Length + header1[3].Length + header1[4].Length + 4; // 4 accounts for spaces
+            for (int i = 0; i < headerLength; i++)
+            {
+                Console.Write("-");
+                if (i == headerLength - 1)
+                    Console.WriteLine("\n");
+            }
+
+            Console.WriteLine("{0,33} {1,16}", "Country",$"All Elec. ({root?.SelectSingleNode("//@units")?.Value})");
+            Console.WriteLine();
+
+            foreach (XmlNode country in filteredCountries)
+            {
+                string countryName = country.SelectSingleNode("@name")?.Value ?? string.Empty;
+                if(countryName.Length > 30)
+                    countryName = countryName.Substring(0, 27) + "...";
+                Console.WriteLine("{0,33}", countryName);
+            }
         }
-    }
+
+
+    } // end of class
 }
