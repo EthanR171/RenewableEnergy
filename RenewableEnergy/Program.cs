@@ -98,8 +98,55 @@ namespace RenewableEnergy
                                     GenerateReportForSpecificTypeOfRenewableEnergy(rootNode);
                                     break;
                                 case "P":
-                                    GenerateRangeBasedReport(rootNode, 13.5, 14.5);
+                                    bool validInput = false;
+                                    while (!validInput)
+                                    {
+                                        double min = -1, max = -1;
+
+                                        // Get user input for minimum and maximum range
+                                        Console.WriteLine();
+                                        Console.Write("Enter the minimum % of renewables produced or press enter for no minimum: ");
+                                        string minStr = Console.ReadLine() ?? string.Empty;
+                                        Console.Write("Enter the maximum % of renewables produced or press enter for no maximum: ");
+                                        string maxStr = Console.ReadLine() ?? string.Empty;
+
+
+                                        // Handle empty inputs
+                                        if (!string.IsNullOrEmpty(minStr) && !double.TryParse(minStr, out min))
+                                        {
+                                            Console.WriteLine("Invalid Range Error: Please enter a valid number for the minimum value...");
+                                            continue;
+                                        }
+
+                                        if (!string.IsNullOrEmpty(maxStr) && !double.TryParse(maxStr, out max))
+                                        {
+                                            Console.WriteLine("Invalid Range Error: Please enter a valid number for the maximum value...");
+                                            continue;
+                                        }
+
+                                        // if both are valid numbers but min is greater than max restart the loop
+                                        if (double.TryParse(minStr, out double minVal) && double.TryParse(maxStr, out double maxVal) && minVal > maxVal)
+                                        {
+                                            Console.WriteLine("Invalid Range Error: The minimum value cannot be greater than the maximum value...");
+                                            continue;
+                                        }
+
+                                        // If both inputs are empty, set them to -1
+                                        if (string.IsNullOrEmpty(minStr))
+                                        {
+                                            min = -1;
+                                        }
+
+                                        if (string.IsNullOrEmpty(maxStr))
+                                        {
+                                            max = -1;
+                                        }
+
+                                        GenerateRangeBasedReport(rootNode, min, max);
+                                        validInput = true;
+                                    }
                                     break;
+
                                 case "X":
                                     quit = true;
                                     Console.WriteLine("\nShutting down program...");
@@ -206,7 +253,7 @@ namespace RenewableEnergy
                 string percentOfAll = renewableNodes?[i]?.SelectSingleNode("@percent-of-all")?.Value ?? string.Empty;
                 string percentOfRenewables = renewableNodes?[i]?.SelectSingleNode("@percent-of-renewables")?.Value ?? string.Empty;
 
-                Console.WriteLine(" {0,14} {1,16} {2,16} {3,16}", renewableType, amount, percentOfAll, percentOfRenewables);
+                Console.WriteLine(" {0,14} {1,16} {2,16} {3,16}", renewableType, ApplyCommasToNumberStr(amount), percentOfAll, percentOfRenewables);
             }
             Console.WriteLine();
 
@@ -289,7 +336,7 @@ namespace RenewableEnergy
                             if (countryName.Length > 30)
                                 countryName = countryName.Substring(0, 27) + "...";
 
-                            Console.WriteLine(" {0,31} {1,14} {2,16} {3,16}", countryName, amount, percentOfAll, percentOfRenewables);
+                            Console.WriteLine(" {0,31} {1,14} {2,16} {3,16}", countryName, ApplyCommasToNumberStr(amount), percentOfAll, percentOfRenewables);
                         }
                         Console.WriteLine($"{matchesFound} match(es) found.");
 
@@ -312,33 +359,135 @@ namespace RenewableEnergy
 
         public static void GenerateRangeBasedReport(XmlNode? root, double min, double max)
         {
-            XmlNodeList? filteredCountries = root?.SelectNodes($"//country[totals/@renewable-percent >= {min} and totals/@renewable-percent <= {max}]");
+            if (root is null) { return; }
+
+            XmlNodeList? filteredCountries = null;
+            bool minGiven = min != -1;
+            bool maxGiven = max != -1;
+
+            if (minGiven && maxGiven)
+                filteredCountries = root.SelectNodes($"//country[totals/@renewable-percent >= {min} and totals/@renewable-percent <= {max}]");
+            else if (minGiven && !maxGiven)
+                filteredCountries = root.SelectNodes($"//country[totals/@renewable-percent >= {min}]");
+            else if (!minGiven && maxGiven)
+                filteredCountries = root.SelectNodes($"//country[totals/@renewable-percent <= {max}]");
+            else
+            {
+                // just get every last country and output their attributes if no range is given
+                filteredCountries = root.SelectNodes("//country");
+
+                Console.WriteLine();
+                Console.WriteLine("Combined Renewables for All Countries");
+                Console.WriteLine("-------------------------------------\n");
+                Console.WriteLine("{0,33} {1,16} {2,16} {3,17}", "Country", $"All Elec. ({root?.SelectSingleNode("//@units")?.Value})", $"Renewable ({root?.SelectSingleNode("//@units")?.Value})", "% Renewable");
+                Console.WriteLine();
+                foreach (XmlNode country in filteredCountries!)
+                {
+                    string countryName = country.SelectSingleNode("@name")?.Value ?? string.Empty;
+                    string allSources = country.SelectSingleNode("totals/@all-sources")?.Value ?? string.Empty;
+                    string allRenewables = country.SelectSingleNode("totals/@all-renewables")?.Value ?? string.Empty;
+                    string percentRenewable = country.SelectSingleNode("totals/@renewable-percent")?.Value ?? string.Empty;
+                    if (countryName.Length > 30)
+                        countryName = countryName.Substring(0, 27) + "...";
+                    Console.WriteLine("{0,33} {1,16} {2,16} {3,17}", countryName, ApplyCommasToNumberStr(allSources), ApplyCommasToNumberStr(allRenewables), percentRenewable);
+                }
+
+                Console.WriteLine($"{filteredCountries.Count} match(es) found.");
+                return;
+            }
+
             if (filteredCountries is null) { return; }
 
             // output the header for the report
             Console.WriteLine();
 
-            string[] header1 = { "Countries Where Renewables Account for", $"{min:F2}%","to", $"{max:F2}%", "of Electricity Generation" };
-            Console.WriteLine("{0} {1} {2} {3} {4}", header1[0], header1[1], header1[2], header1[3], header1[4]);
-            // calculate length of header for underscores
-            int headerLength = header1[0].Length + header1[1].Length + header1[2].Length + header1[3].Length + header1[4].Length + 4; // 4 accounts for spaces
-            for (int i = 0; i < headerLength; i++)
+            if (minGiven && maxGiven)
             {
-                Console.Write("-");
-                if (i == headerLength - 1)
-                    Console.WriteLine("\n");
+                string[] header1 = { "Countries Where Renewables Account for", $"{min:F2}%", "to", $"{max:F2}%", "of Electricity Generation" };
+                Console.WriteLine("{0} {1} {2} {3} {4}", header1[0], header1[1], header1[2], header1[3], header1[4]);
+                // calculate length of header for underscores
+                int headerLength = header1[0].Length + header1[1].Length + header1[2].Length + header1[3].Length + header1[4].Length + 4; // 4 accounts for spaces
+                for (int i = 0; i < headerLength; i++)
+                {
+                    Console.Write("-");
+                    if (i == headerLength - 1)
+                        Console.WriteLine("\n");
+                }
             }
 
-            Console.WriteLine("{0,33} {1,16}", "Country",$"All Elec. ({root?.SelectSingleNode("//@units")?.Value})");
+            else if (minGiven && !maxGiven)
+            {
+                string[] header2 = { "Countries Where Renewables Account for At Least", $"{min:F2}%", "of Electricity Generation" };
+                Console.WriteLine("{0} {1} {2}", header2[0], header2[1], header2[2]);
+                // calculate length of header for underscores
+                int headerLength = header2[0].Length + header2[1].Length + header2[2].Length + 2; // 2 accounts for spaces
+                for (int i = 0; i < headerLength; i++)
+                {
+                    Console.Write("-");
+                    if (i == headerLength - 1)
+                        Console.WriteLine("\n");
+                }
+            }
+
+            else if (!minGiven && maxGiven)
+            {
+                string[] header3 = { "Countries Where Renewables Account for Up To", $"{max:F2}%", "of Electricity Generation" };
+                Console.WriteLine("{0} {1} {2}", header3[0], header3[1], header3[2]);
+                // calculate length of header for underscores
+                int headerLength = header3[0].Length + header3[1].Length + header3[2].Length + 2; // 2 accounts for spaces
+                for (int i = 0; i < headerLength; i++)
+                {
+                    Console.Write("-");
+                    if (i == headerLength - 1)
+                        Console.WriteLine("\n");
+                }
+            }
+
+            Console.WriteLine("{0,33} {1,16} {2,16} {3,17}", "Country", $"All Elec. ({root?.SelectSingleNode("//@units")?.Value})", $"Renewable ({root?.SelectSingleNode("//@units")?.Value})", "% Renewable");
             Console.WriteLine();
 
             foreach (XmlNode country in filteredCountries)
             {
                 string countryName = country.SelectSingleNode("@name")?.Value ?? string.Empty;
-                if(countryName.Length > 30)
+                string allSources = country.SelectSingleNode("totals/@all-sources")?.Value ?? string.Empty;
+                string allRenewables = country.SelectSingleNode("totals/@all-renewables")?.Value ?? string.Empty;
+                string percentRenewable = country.SelectSingleNode("totals/@renewable-percent")?.Value ?? string.Empty;
+                if (countryName.Length > 30)
                     countryName = countryName.Substring(0, 27) + "...";
-                Console.WriteLine("{0,33}", countryName);
+                Console.WriteLine("{0,33} {1,16} {2,16} {3,17}", countryName, ApplyCommasToNumberStr(allSources), ApplyCommasToNumberStr(allRenewables), percentRenewable);
             }
+
+            Console.WriteLine($"{filteredCountries.Count} match(es) found.");
+        }
+
+        // quick helper method to apply commas to numbers in string format
+        public static string ApplyCommasToNumberStr(string number)
+        {
+            // Split the number into integer and decimal parts
+            string[] parts = number.Split('.');
+            string integerPart = parts[0];
+            string decimalPart = parts.Length > 1 ? parts[1] : string.Empty;
+
+            // Apply commas to the integer part
+            string result = "";
+            int count = 0;
+            for (int i = integerPart.Length - 1; i >= 0; i--)
+            {
+                result = integerPart[i] + result;
+                count++;
+                if (count % 3 == 0 && i != 0)
+                {
+                    result = "," + result;
+                }
+            }
+
+            // Combine the integer part with the decimal part
+            if (!string.IsNullOrEmpty(decimalPart))
+            {
+                result = result + "." + decimalPart;
+            }
+
+            return result;
         }
 
 
