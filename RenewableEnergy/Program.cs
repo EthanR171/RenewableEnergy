@@ -102,6 +102,7 @@ namespace RenewableEnergy
                                     while (!validInput)
                                     {
                                         double min = -1, max = -1;
+                                        bool isMinDefault = false, isMaxDefault = false;
 
                                         // Get user input for minimum and maximum range
                                         Console.WriteLine();
@@ -109,7 +110,6 @@ namespace RenewableEnergy
                                         string minStr = Console.ReadLine() ?? string.Empty;
                                         Console.Write("Enter the maximum % of renewables produced or press enter for no maximum: ");
                                         string maxStr = Console.ReadLine() ?? string.Empty;
-
 
                                         // Handle empty inputs
                                         if (!string.IsNullOrEmpty(minStr) && !double.TryParse(minStr, out min))
@@ -124,28 +124,44 @@ namespace RenewableEnergy
                                             continue;
                                         }
 
-                                        // if both are valid numbers but min is greater than max restart the loop
-                                        if (double.TryParse(minStr, out double minVal) && double.TryParse(maxStr, out double maxVal) && minVal > maxVal)
-                                        {
-                                            Console.WriteLine("Invalid Range Error: The minimum value cannot be greater than the maximum value...");
-                                            continue;
-                                        }
-                                      
-                                        // If both inputs are empty, set them to -1
+                                        // If both inputs are empty, set them to -1 and mark defaults
                                         if (string.IsNullOrEmpty(minStr))
                                         {
                                             min = -1;
+                                            isMinDefault = true;
                                         }
 
                                         if (string.IsNullOrEmpty(maxStr))
                                         {
                                             max = -1;
+                                            isMaxDefault = true;
                                         }
-                                      
+
+                                        // If both are valid numbers but min is greater than max, restart the loop
+                                        if (min > max && !isMinDefault && !isMaxDefault)
+                                        {
+                                            Console.WriteLine("Invalid Range Error: The minimum value cannot be greater than the maximum value...");
+                                            continue;
+                                        }
+
+                                        // Check if the numbers are within the range 0-100 if not defaults
+                                        if ((min < 0 || min > 100) && !isMinDefault)
+                                        {
+                                            Console.WriteLine("Range Error: The minimum value must be between 0 and 100...");
+                                            continue;
+                                        }
+
+                                        if ((max < 0 || max > 100) && !isMaxDefault)
+                                        {
+                                            Console.WriteLine("Range Error: The maximum value must be between 0 and 100...");
+                                            continue;
+                                        }
+
                                         GenerateRangeBasedReport(rootNode, min, max);
                                         validInput = true;
                                     }
                                     break;
+
 
                                 case "X":
                                     quit = true;
