@@ -31,6 +31,12 @@ namespace RenewableEnergy
             XmlNodeList? allCountryNodes = null; // this wil be populated using XPath.
             string year;
 
+            // some simple string variables to hold user type, selection, and range
+            string globalType = string.Empty;
+            string globalSelection = string.Empty;
+            string globalMinPercent = string.Empty;
+            string globalMaxPercent = string.Empty;
+
             // Load the data from the XML file using the DOM
             try
             {
@@ -79,6 +85,13 @@ namespace RenewableEnergy
                                             {
                                                 // generate the report for the selected country...
                                                 GenerateReportForCountry(allCountryNodes[index - 1]); // XPath for this was done on line 43
+
+                                                // store the user's selection in memory to output to file later
+                                                globalType = "C";
+                                                globalSelection = allCountryNodes[index - 1]?.SelectSingleNode("@name")?.Value ?? string.Empty;
+                                                globalMinPercent = "-1"; // default value
+                                                globalMaxPercent = "-1"; // default value
+
                                                 reportFinished = true;
                                             }
                                             else
@@ -92,6 +105,9 @@ namespace RenewableEnergy
                                             Console.WriteLine("Invalid Country Error: Please enter a valid country number...");
                                         }
                                     }
+
+                                    // report is done. save settings to a xml file...
+
 
                                     break;
                                 case "S":
@@ -171,7 +187,34 @@ namespace RenewableEnergy
                     } // end of program loop
 
                     // once user quits we will save their data to a file as per instructions...
-                    // maybe we can use a method to save the data to a file...
+                    XmlDocument settingsDoc = new XmlDocument();
+                    XmlDeclaration declNode = settingsDoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+                    settingsDoc.AppendChild(declNode);
+
+                    XmlElement rootElement = settingsDoc.CreateElement("settings");
+                    settingsDoc.AppendChild(rootElement);
+
+                    XmlElement typeElement = settingsDoc.CreateElement("type"); // either C, S, or P
+                    typeElement.InnerText = globalType;
+                    rootElement.AppendChild(typeElement);
+
+                    XmlElement selectionElement = settingsDoc.CreateElement("selection"); // represents country name or type of renewable
+                    selectionElement.InnerText = globalSelection;
+                    rootElement.AppendChild(selectionElement);
+
+                    XmlElement minPercentElement = settingsDoc.CreateElement("min-percent");
+                    minPercentElement.InnerText = globalMinPercent;
+                    rootElement.AppendChild(minPercentElement);
+
+                    XmlElement maxPercentElement = settingsDoc.CreateElement("max-percent");
+                    maxPercentElement.InnerText = globalMaxPercent;
+                    rootElement.AppendChild(maxPercentElement);
+
+                    // Save the settings document in the solution folder
+                    string solutionFolder = @"..\..\..\..\";
+                    string settingsFilePath = Path.Combine(solutionFolder, "settings.xml");
+                    settingsDoc.Save(settingsFilePath);
+
                 }
             }
             catch (XPathException e)
