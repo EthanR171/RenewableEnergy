@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <settings>
-  <type>C</type>
-  <selection>Trinidad and Tobago</selection>
-  <min-percent>-1</min-percent>
-  <max-percent>-1</max-percent>
+  <type>P</type>
+  <selection>-1</selection>
+  <min>10</min>
+  <max>10.5</max>
 </settings>

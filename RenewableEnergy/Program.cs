@@ -23,6 +23,7 @@ namespace RenewableEnergy
     public class Program
     {
         const string XmlFile = @"..\..\..\..\renewable-electricity.xml"; // in the soultion folder
+        const string SettingsFile = @"..\..\..\..\settings.xml"; // settings file path in solution folder
         static void Main(string[] args)
         {
 
@@ -30,6 +31,9 @@ namespace RenewableEnergy
             XmlNode? rootNode;
             XmlNodeList? allCountryNodes = null; // this wil be populated using XPath.
             string year;
+
+            XmlDocument settingsDoc = new XmlDocument(); 
+            XmlElement? settingsRoot = null;
 
             // some simple string variables to hold user type, selection, and range
             string globalType = string.Empty;
@@ -48,13 +52,54 @@ namespace RenewableEnergy
                     year = rootNode?.SelectSingleNode("//@year")?.Value ?? string.Empty;
                     allCountryNodes = rootNode?.SelectNodes("//country"); // obtain all country nodes using XPath
 
+                    
+
                     Console.OutputEncoding = Encoding.UTF8; // change console output to view copyright symbol
                     Console.WriteLine("XML Report Generator \u00A9 Copyright 2024 ~ Ethan Rivers & Jefferson Gilbert\n\n");
                     Console.WriteLine($"Renewable Electricity Production in {year}");
 
                     Console.WriteLine("========================================");
 
-                    // this is where we can output the previous report from sthe settings xml file if it exists...
+                    // Try to load previous query from the settings file 
+                    try
+                    {
+                        settingsDoc.Load(SettingsFile);
+                        settingsRoot = settingsDoc.DocumentElement;
+
+                        Console.WriteLine();
+                        Console.WriteLine("Here is the final report you requested the last time you were here...\n");
+                        // now we just generate report base on type
+                        string type = settingsRoot?.SelectSingleNode("type")?.InnerText ?? string.Empty;
+                        string selection = settingsRoot?.SelectSingleNode("selection")?.InnerText ?? string.Empty;
+                        string min = settingsRoot?.SelectSingleNode("min")?.InnerText ?? string.Empty;
+                        string max = settingsRoot?.SelectSingleNode("max")?.InnerText ?? string.Empty;
+
+                        if (type == "C")
+                        {
+                            GenerateReportForCountry(rootNode?.SelectSingleNode($"//country[@name=\"{selection}\"]"));
+                        }
+                        else if (type == "S")
+                        {
+                            GenerateReportForSpecificTypeOfRenewableEnergy(rootNode);
+                        }
+                        else if (type == "P")
+                        {
+                            GenerateRangeBasedReport(rootNode, double.Parse(min), double.Parse(max));
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // If loading fails, initialize a new settings document
+                        settingsDoc = new XmlDocument();
+                        XmlDeclaration declNode = settingsDoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+                        settingsDoc.AppendChild(declNode);
+                        settingsRoot = settingsDoc.CreateElement("settings");
+                        settingsDoc.AppendChild(settingsRoot);
+
+
+                    }
+
+
 
                     List<string> commands = new List<string> { "C", "S", "P", "X" };
 
@@ -86,11 +131,12 @@ namespace RenewableEnergy
                                                 // generate the report for the selected country...
                                                 GenerateReportForCountry(allCountryNodes[index - 1]); // XPath for this was done on line 43
 
-                                                // store the user's selection in memory to output to file later
+                                                // store the user's selection in memory and save to setting file
                                                 globalType = "C";
                                                 globalSelection = allCountryNodes[index - 1]?.SelectSingleNode("@name")?.Value ?? string.Empty;
                                                 globalMinPercent = "-1"; // default value
                                                 globalMaxPercent = "-1"; // default value
+                                                SaveSettings(settingsDoc, settingsRoot, globalType, globalSelection, globalMinPercent, globalMaxPercent);
 
                                                 reportFinished = true;
                                             }
@@ -112,6 +158,11 @@ namespace RenewableEnergy
                                     break;
                                 case "S":
                                     GenerateReportForSpecificTypeOfRenewableEnergy(rootNode);
+                                    globalType = "S";
+                                    globalSelection = "-1"; // default value
+                                    globalMinPercent = "-1"; // default value
+                                    globalMaxPercent = "-1"; // default value
+                                    SaveSettings(settingsDoc, settingsRoot, globalType, globalSelection, globalMinPercent, globalMaxPercent);
                                     break;
                                 case "P":
                                     bool validInput = false;
@@ -174,6 +225,11 @@ namespace RenewableEnergy
                                         }
 
                                         GenerateRangeBasedReport(rootNode, min, max);
+                                        globalType = "P";
+                                        globalSelection = "-1"; // default value
+                                        globalMinPercent = min.ToString();
+                                        globalMaxPercent = max.ToString();
+                                        SaveSettings(settingsDoc, settingsRoot, globalType, globalSelection, globalMinPercent, globalMaxPercent);
                                         validInput = true;
                                     }
                                     break;
@@ -186,37 +242,8 @@ namespace RenewableEnergy
                         else { Console.WriteLine("Invalid Command Error: Please enter a valid command..."); }
                     } // end of program loop
 
-                    // once user quits we will save their data to a file as per instructions...
-                    XmlDocument settingsDoc = new XmlDocument();
-                    XmlDeclaration declNode = settingsDoc.CreateXmlDeclaration("1.0", "UTF-8", null);
-                    settingsDoc.AppendChild(declNode);
-
-                    XmlElement rootElement = settingsDoc.CreateElement("settings");
-                    settingsDoc.AppendChild(rootElement);
-
-                    XmlElement typeElement = settingsDoc.CreateElement("type"); // either C, S, or P
-                    typeElement.InnerText = globalType;
-                    rootElement.AppendChild(typeElement);
-
-                    XmlElement selectionElement = settingsDoc.CreateElement("selection"); // represents country name or type of renewable
-                    selectionElement.InnerText = globalSelection;
-                    rootElement.AppendChild(selectionElement);
-
-                    XmlElement minPercentElement = settingsDoc.CreateElement("min-percent");
-                    minPercentElement.InnerText = globalMinPercent;
-                    rootElement.AppendChild(minPercentElement);
-
-                    XmlElement maxPercentElement = settingsDoc.CreateElement("max-percent");
-                    maxPercentElement.InnerText = globalMaxPercent;
-                    rootElement.AppendChild(maxPercentElement);
-
-                    // Save the settings document in the solution folder
-                    string solutionFolder = @"..\..\..\..\";
-                    string settingsFilePath = Path.Combine(solutionFolder, "settings.xml");
-                    settingsDoc.Save(settingsFilePath);
-
-                }
-            }
+                } // end of if block for checking if the root node is not null
+            } // end of try block for loading the XML file
             catch (XPathException e)
             {
                 Console.WriteLine("Error selecting country nodes: " + e.Message);
@@ -240,6 +267,33 @@ namespace RenewableEnergy
                 Console.WriteLine(e.StackTrace);
                 return;
             }
+        }
+
+        private static void SaveSettings(XmlDocument settingsDoc, XmlElement? settingsRoot, string type, string selection, string min, string max)
+        {
+            // clear the settings file
+            settingsRoot?.RemoveAll();
+
+            // create the elements for the settings file
+            XmlElement typeElement = settingsDoc.CreateElement("type");
+            typeElement.InnerText = type;
+            settingsRoot?.AppendChild(typeElement);
+
+            XmlElement selectionElement = settingsDoc.CreateElement("selection");
+            selectionElement.InnerText = selection;
+            settingsRoot?.AppendChild(selectionElement);
+
+            XmlElement minElement = settingsDoc.CreateElement("min");
+            minElement.InnerText = min;
+            settingsRoot?.AppendChild(minElement);
+
+            XmlElement maxElement = settingsDoc.CreateElement("max");
+            maxElement.InnerText = max;
+            settingsRoot?.AppendChild(maxElement);
+
+            // save the settings file
+            settingsDoc.Save(SettingsFile);
+
         }
 
         public static void DisplayNumberedMenuOfCountries(XmlNodeList? allCountries)
