@@ -130,7 +130,7 @@ namespace RenewableEnergy
                                             Console.WriteLine("Invalid Range Error: The minimum value cannot be greater than the maximum value...");
                                             continue;
                                         }
-
+                                      
                                         // If both inputs are empty, set them to -1
                                         if (string.IsNullOrEmpty(minStr))
                                         {
@@ -141,7 +141,7 @@ namespace RenewableEnergy
                                         {
                                             max = -1;
                                         }
-
+                                      
                                         GenerateRangeBasedReport(rootNode, min, max);
                                         validInput = true;
                                     }
