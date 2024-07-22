@@ -151,10 +151,6 @@ namespace RenewableEnergy
                                             Console.WriteLine("Invalid Country Error: Please enter a valid country number...");
                                         }
                                     }
-
-                                    // report is done. save settings to a xml file...
-
-
                                     break;
                                 case "S":
                                     {
@@ -341,7 +337,6 @@ namespace RenewableEnergy
 
             // save the settings file
             settingsDoc.Save(SettingsFile);
-
         }
 
         public static void DisplayNumberedMenuOfCountries(XmlNodeList? allCountries)
@@ -595,6 +590,5 @@ namespace RenewableEnergy
             return result;
         }
 
-
-    } // end of class
+    } // end of Program class
 }
