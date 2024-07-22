@@ -95,12 +95,10 @@ namespace RenewableEnergy
                         settingsDoc.AppendChild(declNode);
                         settingsRoot = settingsDoc.CreateElement("settings");
                         settingsDoc.AppendChild(settingsRoot);
-
-
                     }
 
 
-
+                    // START OF INTERACTIVE LOOP FOR USER
                     List<string> commands = new List<string> { "C", "S", "P", "X" };
 
                     bool quit = false;
