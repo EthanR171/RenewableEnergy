@@ -78,7 +78,7 @@ namespace RenewableEnergy
                                             if (index > 0 && index <= allCountryNodes?.Count)
                                             {
                                                 // generate the report for the selected country...
-                                                GenerateReportForCountry(allCountryNodes[index - 1]);
+                                                GenerateReportForCountry(allCountryNodes[index - 1]); // XPath for this was done on line 43
                                                 reportFinished = true;
                                             }
                                             else
