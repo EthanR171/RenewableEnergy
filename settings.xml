@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <settings>
-  <type>C</type>
-  <selection>Zambia</selection>
+  <type>P</type>
+  <selection>-1</selection>
   <min>-1</min>
-  <max>-1</max>
+  <max>0.5</max>
 </settings>

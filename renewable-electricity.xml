@@ -2,6 +2,7 @@
 <!-- 
 	Source: https://en.wikipedia.org/wiki/List_of_countries_by_renewable_electricity_production 
 	Downloaded: June 26, 2024
+	Updated: July 24, 2024 [Corections to Comoros, Saint Pierre and Miquelo, Sint Maarten and Tokelau]
 -->
 <renewable-electricity year="2021" units="GWh">
   <country name="Afghanistan">
@@ -349,7 +350,7 @@
     <source type="geothermal" amount="0" percent-of-all="0" percent-of-renewables="0" />
   </country>
   <country name="Comoros">
-    <totals all-sources="0" all-renewables="0" renewable-percent="NaN" />
+    <totals all-sources="0" all-renewables="0" renewable-percent="0" />
     <source type="hydro" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="wind" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="biomass" amount="0" percent-of-all="0" percent-of-renewables="0" />
@@ -1373,7 +1374,7 @@
     <source type="geothermal" amount="0" percent-of-all="0" percent-of-renewables="0" />
   </country>
   <country name="Saint Pierre and Miquelon">
-    <totals all-sources="0" all-renewables="0" renewable-percent="NaN" />
+    <totals all-sources="0" all-renewables="0" renewable-percent="0" />
     <source type="hydro" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="wind" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="biomass" amount="0" percent-of-all="0" percent-of-renewables="0" />
@@ -1453,7 +1454,7 @@
     <source type="geothermal" amount="0" percent-of-all="0" percent-of-renewables="0" />
   </country>
   <country name="Sint Maarten">
-    <totals all-sources="0" all-renewables="0" renewable-percent="NaN" />
+    <totals all-sources="0" all-renewables="0" renewable-percent="0" />
     <source type="hydro" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="wind" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="biomass" amount="0" percent-of-all="0" percent-of-renewables="0" />
@@ -1621,11 +1622,11 @@
     <source type="geothermal" amount="0" percent-of-all="0" percent-of-renewables="0" />
   </country>
   <country name="Tokelau">
-    <totals all-sources="1" all-renewables="1.2" renewable-percent="120" />
+    <totals all-sources="1.31" all-renewables="1.2" renewable-percent="91.7" />
     <source type="hydro" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="wind" amount="0" percent-of-all="0" percent-of-renewables="0" />
     <source type="biomass" amount="0" percent-of-all="0" percent-of-renewables="0" />
-    <source type="solar" amount="1" percent-of-all="91.7" percent-of-renewables="83.3" />
+    <source type="solar" amount="1" percent-of-all="91.7" percent-of-renewables="100" />
     <source type="geothermal" amount="0" percent-of-all="0" percent-of-renewables="0" />
   </country>
   <country name="Tonga">
